@@ -3,6 +3,7 @@ from constants import SCREEN_WIDTH, SCREEN_HEIGHT
 from player import Player
 from asteroid import Asteroid
 from asteroidfield import AsteroidField
+import sys
 
 
 def main():
@@ -39,7 +40,10 @@ def main():
         # Fill the background
         screen.fill("#000000")
 
-        # Update and draw the sprites
+        for asteroid in asteroids:
+            if asteroid.check_collision(player):
+                print("Game over!")
+                sys.exit()
         for sprite in updatable:
             sprite.update(dt)
         for sprite in drawable:
