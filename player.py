@@ -10,11 +10,31 @@ from constants import (
 from shot import Shot
 
 
-class Player(CircleShape):
+class Player(pygame.sprite.Sprite, CircleShape):
+    containers = None # Will be set in main.py
+
     def __init__(self, x, y):
-        super().__init__(x, y, PLAYER_RADIUS)
+        pygame.sprite.Sprite.__init__(self)
+        CircleShape.__init__(self, x, y, PLAYER_RADIUS)
+        
+        self.image = pygame.Surface([self.radius*2, self.radius*2], pygame.SRCALPHA)
+        # The actual drawing of the triangle for display will be handled by the draw() method
+        # For sprite collision, a circle matching PLAYER_RADIUS is appropriate.
+        # We can draw a visible circle on self.image for debugging or use a transparent one.
+        pygame.draw.circle(self.image, (255, 255, 255, 0), (self.radius, self.radius), self.radius) # Transparent for collision
+        self.rect = self.image.get_rect(center=(x,y))
+        
         self.rotation = 0
-        self.timer = 0
+        self.timer = 0 # For shooting cooldown
+
+        self.shoot_cooldown_multiplier = 1.0 # 1.0 means normal cooldown
+        self.powerup_timer = 0.0 # Duration for active power-up
+        self.active_powerup_type = None
+        self.active_powerup_color = None # For visual indicator
+
+        # Add to groups if containers are set
+        if Player.containers:
+            self.add(Player.containers)
 
     # in the player class
     def triangle(self):
@@ -33,15 +53,20 @@ class Player(CircleShape):
         self.position += forward * PLAYER_SPEED * dt
 
     def shoot(self):
+        current_shoot_cooldown = PLAYER_SHOOT_COOLDOWN * self.shoot_cooldown_multiplier
         if self.timer <= 0:
             new_shot = Shot(self.position.x, self.position.y)
             new_shot.velocity = (
                 pygame.Vector2(0, 1).rotate(self.rotation) * PLAYER_SHOOT_SPEED
             )
-            self.timer = PLAYER_SHOOT_COOLDOWN
+            self.timer = current_shoot_cooldown
 
     def draw(self, screen):
-        pygame.draw.polygon(screen, "white", self.triangle(), 2)
+        # This manual draw is for the triangle.
+        # The self.image for sprite group drawing is just a circle for collision.
+        # If we wanted the triangle to be on self.image, we'd render it there.
+        current_draw_color = self.active_powerup_color if self.active_powerup_color else "white"
+        pygame.draw.polygon(screen, current_draw_color, self.triangle(), 2)
 
     def update(self, dt):
         keys = pygame.key.get_pressed()
@@ -58,3 +83,14 @@ class Player(CircleShape):
             self.shoot()
 
         self.timer -= dt
+        self.rect.center = (int(self.position.x), int(self.position.y)) # Keep rect synced
+
+        # Power-up timer update
+        if self.powerup_timer > 0:
+            self.powerup_timer -= dt
+            if self.powerup_timer <= 0:
+                print(f"Power-up {self.active_powerup_type} expired.")
+                self.shoot_cooldown_multiplier = 1.0 # Reset effect
+                self.active_powerup_type = None
+                self.active_powerup_color = None # Reset color
+                self.powerup_timer = 0.0
