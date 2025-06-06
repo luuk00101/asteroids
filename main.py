@@ -32,7 +32,7 @@ def main():
     PowerUp.containers = (powerups_group, updatable, drawable) # Assign containers for PowerUp
 
     player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
-    ateroid_field = AsteroidField() # Creates initial asteroids which get added to groups
+    asteroid_field = AsteroidField() # Creates initial asteroids which get added to groups
     pause_menu = PauseMenu(SCREEN_WIDTH, SCREEN_HEIGHT)
     resume_rect = None
     quit_rect = None
@@ -91,7 +91,7 @@ def main():
                         for p in powerups_group: p.kill() # Clear existing power-ups
 
                         player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2) # Re-creates and adds to groups
-                        ateroid_field = AsteroidField() # Re-creates and adds asteroids to groups
+                        asteroid_field = AsteroidField() # Re-creates and adds asteroids to groups
                         
                         paused = False
                         game_state = "PLAYING"
