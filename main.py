@@ -13,6 +13,32 @@ from powerup import (
     SpreadShotPowerUp,
     PowerUp,
 )
+import json
+import os
+
+SCORES_FILE = "scores.json"
+
+
+def load_high_scores():
+    if os.path.exists(SCORES_FILE):
+        try:
+            with open(SCORES_FILE, "r") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            return []
+    return []
+
+
+def save_high_scores(scores):
+    with open(SCORES_FILE, "w") as f:
+        json.dump(scores, f)
+
+
+def update_high_scores(scores, new_score, limit=5):
+    scores.append(new_score)
+    scores = sorted(scores, reverse=True)[:limit]
+    save_high_scores(scores)
+    return scores
 
 
 def main():
@@ -41,6 +67,8 @@ def main():
     pause_menu = PauseMenu(SCREEN_WIDTH, SCREEN_HEIGHT)
     resume_rect = None
     quit_rect = None
+
+    high_scores = load_high_scores()
 
     score = 0
     score_font = pygame.font.Font(None, 36)
@@ -96,6 +124,7 @@ def main():
                         for p in powerups_group: p.kill() # Clear existing power-ups
 
                         player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2) # Re-creates and adds to groups
+                        asteroid_field.kill()  # Remove old asteroid field before creating a new one
                         asteroid_field = AsteroidField() # Re-creates and adds asteroids to groups
                         
                         paused = False
@@ -119,7 +148,9 @@ def main():
                             player.active_powerup_color = None
                         else:
                             game_state = "GAME_OVER"  # Change state instead of exiting
+                            high_scores = update_high_scores(high_scores, score)
                             break  # Exit collision check loop for this frame
+                        
                 if game_state == "GAME_OVER": # Check again if collision changed state
                     continue # Skip rest of PLAYING logic for this frame
 
@@ -174,12 +205,23 @@ def main():
             final_score_rect = final_score_surf.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2))
             screen.blit(final_score_surf, final_score_rect)
 
+            # High Scores
+            hs_start_y = SCREEN_HEIGHT / 2 + 40
+            hs_title_surf = score_font.render("High Scores:", True, (255, 255, 255))
+            hs_title_rect = hs_title_surf.get_rect(center=(SCREEN_WIDTH / 2, hs_start_y))
+            screen.blit(hs_title_surf, hs_title_rect)
+            for idx, hs in enumerate(high_scores):
+                hs_surf = score_font.render(f"{idx + 1}. {hs}", True, (255, 255, 255))
+                hs_rect = hs_surf.get_rect(center=(SCREEN_WIDTH / 2, hs_start_y + 30 * (idx + 1)))
+                screen.blit(hs_surf, hs_rect)
+
+            option_start_y = hs_start_y + 30 * (len(high_scores) + 1)
             restart_surf = options_font.render("R - Restart", True, (255, 255, 255))
-            restart_rect = restart_surf.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 60))
+            restart_rect = restart_surf.get_rect(center=(SCREEN_WIDTH / 2, option_start_y))
             screen.blit(restart_surf, restart_rect)
 
             quit_surf = options_font.render("Q - Quit", True, (255, 255, 255))
-            quit_rect_go = quit_surf.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 120)) # Renamed to avoid conflict
+            quit_rect_go = quit_surf.get_rect(center=(SCREEN_WIDTH / 2, option_start_y + 60))
             screen.blit(quit_surf, quit_rect_go)
 
         pygame.display.flip()
