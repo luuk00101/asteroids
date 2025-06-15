@@ -71,6 +71,7 @@ def main():
     high_scores = load_high_scores()
 
     score = 0
+    lives = 3
     score_font = pygame.font.Font(None, 36)
     game_over_font = pygame.font.Font(None, 74)
     options_font = pygame.font.Font(None, 50)
@@ -118,6 +119,7 @@ def main():
                     if event.key == pygame.K_r:
                         # Reset game
                         score = 0
+                        lives = 3
                         player.kill()
                         for a in asteroids: a.kill()
                         for s in shots: s.kill()
@@ -138,21 +140,27 @@ def main():
 
         if game_state == "PLAYING":
             if not paused:
+                player_respawned = False
                 for asteroid in asteroids:
                     if asteroid.check_collision(player):
-                        if player.shield_active:
+                      if player.shield_active:
                             asteroid.split()
                             player.shield_active = False
                             player.powerup_timer = 0
                             player.active_powerup_type = None
                             player.active_powerup_color = None
+                      else:
+                        player.kill()
+                        lives -= 1
+                        if lives > 0:
+                            player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+                            player_respawned = True
                         else:
-                            game_state = "GAME_OVER"  # Change state instead of exiting
+                            game_state = "GAME_OVER"
                             high_scores = update_high_scores(high_scores, score)
-                            break  # Exit collision check loop for this frame
-                        
-                if game_state == "GAME_OVER": # Check again if collision changed state
-                    continue # Skip rest of PLAYING logic for this frame
+                        break
+                if game_state == "GAME_OVER" or player_respawned:
+                    continue
 
                 for shot in shots: # This loop should not run if game_state became GAME_OVER
                     for asteroid in asteroids: # Need to iterate asteroids again for shot collision
@@ -187,7 +195,9 @@ def main():
                 sprite.draw(screen) # Player, Asteroids, Shots, PowerUps use their own draw if defined, or rely on self.image
 
             score_text_surface = score_font.render(f"Score: {score}", True, (255, 255, 255))
+            lives_text_surface = score_font.render(f"Lives: {lives}", True, (255, 255, 255))
             screen.blit(score_text_surface, (10, 10))
+            screen.blit(lives_text_surface, (10, 40))
 
             if paused:
                 overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
