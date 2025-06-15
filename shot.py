@@ -13,10 +13,12 @@ class Shot(CircleShape):
     def update(self, dt):
         self.position += self.velocity * dt
 
-        if (
-            self.position.x < -self.radius
-            or self.position.x > SCREEN_WIDTH + self.radius
-            or self.position.y < -self.radius
-            or self.position.y > SCREEN_HEIGHT + self.radius
-        ):
-            self.kill()
+        # Screen wrap-around for shots
+        if self.position.x > SCREEN_WIDTH:
+            self.position.x = 0
+        elif self.position.x < 0:
+            self.position.x = SCREEN_WIDTH
+        if self.position.y > SCREEN_HEIGHT:
+            self.position.y = 0
+        elif self.position.y < 0:
+            self.position.y = SCREEN_HEIGHT

@@ -53,3 +53,41 @@ class RapidFirePowerUp(PowerUp):
         player.active_powerup_type = self.powerup_type
         player.active_powerup_color = self.color # Set player's active color
         print(f"Set player.shoot_cooldown_multiplier to 0.5, player.powerup_timer to {self.duration}, player.active_powerup_type to {self.powerup_type}, player.active_powerup_color to {self.color}")
+
+
+class ShieldPowerUp(PowerUp):
+    def __init__(self, x, y):
+        super().__init__(
+            x,
+            y,
+            radius=12,
+            color=(0, 0, 255),
+            powerup_type="shield",
+            duration=5.0,
+        )
+
+    def apply_effect(self, player):
+        print(f"Applying {self.powerup_type} to player for {self.duration}s.")
+        player.shield_active = True
+        player.powerup_timer = self.duration
+        player.active_powerup_type = self.powerup_type
+        player.active_powerup_color = self.color
+
+
+class SpreadShotPowerUp(PowerUp):
+    def __init__(self, x, y):
+        super().__init__(
+            x,
+            y,
+            radius=12,
+            color=(255, 165, 0),
+            powerup_type="spread_shot",
+            duration=5.0,
+        )
+
+    def apply_effect(self, player):
+        print(f"Applying {self.powerup_type} to player for {self.duration}s.")
+        player.spread_shot_active = True
+        player.powerup_timer = self.duration
+        player.active_powerup_type = self.powerup_type
+        player.active_powerup_color = self.color

@@ -6,6 +6,8 @@ from constants import (
     PLAYER_SHOOT_SPEED,
     PLAYER_TURN_SPEED,
     PLAYER_SPEED,
+    SCREEN_WIDTH,
+    SCREEN_HEIGHT,
 )
 from shot import Shot
 
@@ -31,6 +33,8 @@ class Player(pygame.sprite.Sprite, CircleShape):
         self.powerup_timer = 0.0 # Duration for active power-up
         self.active_powerup_type = None
         self.active_powerup_color = None # For visual indicator
+        self.shield_active = False
+        self.spread_shot_active = False
 
         # Add to groups if containers are set
         if Player.containers:
@@ -55,10 +59,14 @@ class Player(pygame.sprite.Sprite, CircleShape):
     def shoot(self):
         current_shoot_cooldown = PLAYER_SHOOT_COOLDOWN * self.shoot_cooldown_multiplier
         if self.timer <= 0:
-            new_shot = Shot(self.position.x, self.position.y)
-            new_shot.velocity = (
-                pygame.Vector2(0, 1).rotate(self.rotation) * PLAYER_SHOOT_SPEED
-            )
+            angles = [0]
+            if self.spread_shot_active:
+                angles = [-15, 0, 15]
+            for a in angles:
+                new_shot = Shot(self.position.x, self.position.y)
+                new_shot.velocity = (
+                    pygame.Vector2(0, 1).rotate(self.rotation + a) * PLAYER_SHOOT_SPEED
+                )
             self.timer = current_shoot_cooldown
 
     def draw(self, screen):
@@ -67,6 +75,8 @@ class Player(pygame.sprite.Sprite, CircleShape):
         # If we wanted the triangle to be on self.image, we'd render it there.
         current_draw_color = self.active_powerup_color if self.active_powerup_color else "white"
         pygame.draw.polygon(screen, current_draw_color, self.triangle(), 2)
+        if self.shield_active:
+            pygame.draw.circle(screen, "blue", (int(self.position.x), int(self.position.y)), self.radius + 5, 1)
 
     def update(self, dt):
         keys = pygame.key.get_pressed()
@@ -83,14 +93,30 @@ class Player(pygame.sprite.Sprite, CircleShape):
             self.shoot()
 
         self.timer -= dt
-        self.rect.center = (int(self.position.x), int(self.position.y)) # Keep rect synced
+
+        # Screen wrap-around
+        if self.position.x > SCREEN_WIDTH:
+            self.position.x = 0
+        elif self.position.x < 0:
+            self.position.x = SCREEN_WIDTH
+        if self.position.y > SCREEN_HEIGHT:
+            self.position.y = 0
+        elif self.position.y < 0:
+            self.position.y = SCREEN_HEIGHT
+
+        self.rect.center = (int(self.position.x), int(self.position.y))  # Keep rect synced
 
         # Power-up timer update
         if self.powerup_timer > 0:
             self.powerup_timer -= dt
             if self.powerup_timer <= 0:
                 print(f"Power-up {self.active_powerup_type} expired.")
-                self.shoot_cooldown_multiplier = 1.0 # Reset effect
+                if self.active_powerup_type == "rapid_fire":
+                    self.shoot_cooldown_multiplier = 1.0
+                elif self.active_powerup_type == "shield":
+                    self.shield_active = False
+                elif self.active_powerup_type == "spread_shot":
+                    self.spread_shot_active = False
                 self.active_powerup_type = None
-                self.active_powerup_color = None # Reset color
+                self.active_powerup_color = None
                 self.powerup_timer = 0.0
