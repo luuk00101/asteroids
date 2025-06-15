@@ -12,12 +12,11 @@ from constants import (
 from shot import Shot
 
 
-class Player(pygame.sprite.Sprite, CircleShape):
-    containers = None # Will be set in main.py
+class Player(CircleShape):
+    containers = None  # Will be set in main.py
 
     def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)
-        CircleShape.__init__(self, x, y, PLAYER_RADIUS)
+        super().__init__(x, y, PLAYER_RADIUS)
         
         self.image = pygame.Surface([self.radius*2, self.radius*2], pygame.SRCALPHA)
         # The actual drawing of the triangle for display will be handled by the draw() method

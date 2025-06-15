@@ -2,12 +2,11 @@ import pygame
 from circleshape import CircleShape # Assuming this is the correct path
 # from player import Player # Avoiding direct import for now to prevent circular dependency
 
-class PowerUp(pygame.sprite.Sprite, CircleShape):
-    containers = None # Will be set in main.py
+class PowerUp(CircleShape):
+    containers = None  # Will be set in main.py
 
     def __init__(self, x, y, radius, color, powerup_type, duration):
-        pygame.sprite.Sprite.__init__(self) # Initialize Sprite part
-        CircleShape.__init__(self, x, y, radius) # Initialize CircleShape part
+        super().__init__(x, y, radius)
         
         self.image = pygame.Surface([radius*2, radius*2], pygame.SRCALPHA)
         pygame.draw.circle(self.image, color, (radius, radius), radius)
