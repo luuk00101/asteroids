@@ -4,9 +4,10 @@ import pygame
 # Base class for game objects
 class CircleShape(pygame.sprite.Sprite):
     def __init__(self, x, y, radius):
-        # we will be using this later
-        if hasattr(self, "containers"):
-            super().__init__(self.containers)  # type: ignore
+        # Add to sprite groups only if containers are set
+        containers = getattr(self, "containers", None)
+        if containers:
+            super().__init__(containers)  # type: ignore
         else:
             super().__init__()
 
