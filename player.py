@@ -6,6 +6,8 @@ from constants import (
     PLAYER_SHOOT_SPEED,
     PLAYER_TURN_SPEED,
     PLAYER_SPEED,
+    SCREEN_WIDTH,
+    SCREEN_HEIGHT,
 )
 from shot import Shot
 
@@ -91,7 +93,18 @@ class Player(pygame.sprite.Sprite, CircleShape):
             self.shoot()
 
         self.timer -= dt
-        self.rect.center = (int(self.position.x), int(self.position.y)) # Keep rect synced
+
+        # Screen wrap-around
+        if self.position.x > SCREEN_WIDTH:
+            self.position.x = 0
+        elif self.position.x < 0:
+            self.position.x = SCREEN_WIDTH
+        if self.position.y > SCREEN_HEIGHT:
+            self.position.y = 0
+        elif self.position.y < 0:
+            self.position.y = SCREEN_HEIGHT
+
+        self.rect.center = (int(self.position.x), int(self.position.y))  # Keep rect synced
 
         # Power-up timer update
         if self.powerup_timer > 0:
