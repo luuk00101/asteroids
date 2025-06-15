@@ -91,6 +91,7 @@ def main():
                         for p in powerups_group: p.kill() # Clear existing power-ups
 
                         player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2) # Re-creates and adds to groups
+                        asteroid_field.kill()  # Remove old asteroid field before creating a new one
                         asteroid_field = AsteroidField() # Re-creates and adds asteroids to groups
                         
                         paused = False
