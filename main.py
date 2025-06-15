@@ -7,7 +7,12 @@ from shot import Shot
 import sys
 import random # For power-up spawning chance
 from pause_menu import PauseMenu
-from powerup import RapidFirePowerUp, PowerUp # Import PowerUp for containers
+from powerup import (
+    RapidFirePowerUp,
+    ShieldPowerUp,
+    SpreadShotPowerUp,
+    PowerUp,
+)
 import json
 import os
 
@@ -135,9 +140,17 @@ def main():
             if not paused:
                 for asteroid in asteroids:
                     if asteroid.check_collision(player):
-                        game_state = "GAME_OVER" # Change state instead of exiting
-                        high_scores = update_high_scores(high_scores, score)
-                        break # Exit collision check loop for this frame
+                        if player.shield_active:
+                            asteroid.split()
+                            player.shield_active = False
+                            player.powerup_timer = 0
+                            player.active_powerup_type = None
+                            player.active_powerup_color = None
+                        else:
+                            game_state = "GAME_OVER"  # Change state instead of exiting
+                            high_scores = update_high_scores(high_scores, score)
+                            break  # Exit collision check loop for this frame
+                        
                 if game_state == "GAME_OVER": # Check again if collision changed state
                     continue # Skip rest of PLAYING logic for this frame
 
@@ -148,10 +161,16 @@ def main():
                             asteroid.split()
                             score += 10
                             # Spawn power-up chance
-                            if random.random() < 0.2: # 20% chance
-                                # PowerUp class handles adding to groups via PowerUp.containers
-                                RapidFirePowerUp(asteroid.position.x, asteroid.position.y)
-                                print(f"Spawned RapidFirePowerUp at ({asteroid.position.x}, {asteroid.position.y})")
+                            if random.random() < 0.2:  # 20% chance
+                                powerup_cls = random.choice([
+                                    RapidFirePowerUp,
+                                    ShieldPowerUp,
+                                    SpreadShotPowerUp,
+                                ])
+                                powerup_cls(asteroid.position.x, asteroid.position.y)
+                                print(
+                                    f"Spawned {powerup_cls.__name__} at ({asteroid.position.x}, {asteroid.position.y})"
+                                )
                             break # Assume one shot hits one asteroid part
                 
                 # Player-powerup collision
